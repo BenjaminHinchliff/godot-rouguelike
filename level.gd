@@ -1,10 +1,12 @@
 extends TileMap
 
+class_name Level
+
 const DIRECTIONS := [
-		Vector2(0, -1),
-		Vector2(0, 1),
-		Vector2(-1, 0),
-		Vector2(1, 0)
+		Vector2.UP,
+		Vector2.DOWN,
+		Vector2.LEFT,
+		Vector2.RIGHT
 	]
 
 export var map_size := Vector2(63, 35)
@@ -13,6 +15,7 @@ export var room_max_base_size := 2
 export var room_size_deviation := 0.5
 export var extra_connector_chance := 0.05
 
+var rooms := []
 var _rand := RandomNumberGenerator.new()
 var _regions := {} # to keep track of what region a tile is in
 var _curRegion := 0
@@ -54,6 +57,7 @@ func _remove_dead_ends():
 				done = false
 				set_cell(x, y, -1)
 
+# TODO: track down bugs here
 func _connect_regions() -> void:
 	var connectors := _find_connectors()
 	var connectorLocs := connectors.keys()
@@ -61,11 +65,11 @@ func _connect_regions() -> void:
 	# map the old index to its connected region
 	var toConnected := {}
 	var unconnectedRegions := []
-	for i in range(0, _curRegion):
+	for i in range(0, _curRegion + 1):
 		toConnected[i] = i
 		unconnectedRegions.append(i)
 	
-	while unconnectedRegions.size() > 1:
+	while unconnectedRegions.size() > 1 and connectorLocs.size() > 0:
 		var connector: Vector2 = connectorLocs[randi() % connectorLocs.size()]
 		
 		set_cellv(connector, 0)
@@ -79,7 +83,7 @@ func _connect_regions() -> void:
 		var sources = regions.slice(1, regions.size())
 		
 		# actually merge the regions
-		for i in range(0, _curRegion):
+		for i in range(0, _curRegion + 1):
 			if sources.has(toConnected[i]):
 				toConnected[i] = destination
 				
@@ -156,7 +160,6 @@ func _in_bounds(pos: Vector2) -> bool:
 			and 0 <= pos.y and pos.y <= map_size.y
 
 func _place_rooms() -> void:
-	var rooms := []
 	for _i in range(0, room_place_tries):
 		var squareSize: int = _rand.randi_range(1, room_max_base_size) * 2 + 1
 		var sizeDeviation: int = \
@@ -174,14 +177,14 @@ func _place_rooms() -> void:
 		
 		var room := Rect2(x, y, width, height)
 		
-		if _is_room_overlapping(room, rooms):
+		if _is_room_overlapping(room):
 			continue
 		
 		rooms.append(room)
 		
-	_set_rooms(rooms)
+	_set_rooms()
 		
-func _is_room_overlapping(room: Rect2, rooms: Array) -> bool:
+func _is_room_overlapping(room: Rect2) -> bool:
 	var overlapping := false
 	for other in rooms:
 		if room.intersects(other):
@@ -189,7 +192,7 @@ func _is_room_overlapping(room: Rect2, rooms: Array) -> bool:
 			break
 	return overlapping
 
-func _set_rooms(rooms: Array) -> void:
+func _set_rooms() -> void:
 	for room in rooms:
 		_set_rect(room)
 		_curRegion += 1

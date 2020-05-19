@@ -8,9 +8,14 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "TileMap",
+"class": "Level",
+"language": "GDScript",
+"path": "res://level.gd"
+} ]
 _global_script_class_icons={
-
+"Level": ""
 }
 
 [application]

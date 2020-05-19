@@ -6,6 +6,13 @@
 [node name="Node2D" type="Node2D"]
 
 [node name="level" parent="." instance=ExtResource( 2 )]
+scale = Vector2( 1, 1 )
 
 [node name="player" parent="." instance=ExtResource( 1 )]
-position = Vector2( 735.489, 349.623 )
+position = Vector2( 482.581, 105.867 )
+scale = Vector2( 2, 2 )
+tiles = NodePath("../level")
+move_speed = 5
+
+[node name="Camera2D" type="Camera2D" parent="player"]
+current = true
